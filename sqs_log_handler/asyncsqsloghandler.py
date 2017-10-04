@@ -9,6 +9,8 @@ class AsyncSQSHandler(threading.Thread):
     DEFAULT_TIMEOUT_IN_SEC = 5
 
     def __init__(self, queue_name, aws_key_id=None, secret_key=None, global_extra=None, region_name='eu-west-1'):
+        threading.Thread.__init__(name='AsyncBatchSqsLogHandler')
+
         self._handler = BatchSQSHandler(queue=queue_name, aws_key_id=aws_key_id, secret_key=secret_key,
                                         global_extra=global_extra, region_name=region_name)
         self._queue = Queue.Queue()
