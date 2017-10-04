@@ -46,3 +46,6 @@ class AsyncSQSHandler(threading.Thread):
 
     def setLevel(self, level):
         self._handler.setLevel(level)
+
+    def handle(self, record):
+        self._handler.handle(record)
