@@ -29,8 +29,8 @@ class AsyncSQSHandler(threading.Thread):
                     records.append(record)
                 except Queue.Empty:
                     break
-
-            self._handler.emit(records)
+            if len(records) > 0:
+                self._handler.emit(records)
 
     def emit(self, record):
         self._queue.put(record)
