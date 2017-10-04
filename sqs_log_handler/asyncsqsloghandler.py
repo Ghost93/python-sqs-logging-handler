@@ -36,3 +36,6 @@ class AsyncSQSHandler(threading.Thread):
 
     def sqs_batch_appender(self):
         return self._handler
+
+    def setFormatter(self, fmt):
+        self._handler.setFormatter(fmt)
