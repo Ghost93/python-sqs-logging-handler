@@ -4,7 +4,7 @@ import threading
 
 class AsyncHandler(threading.Thread):
     def __init__(self, handler):
-        threading.Thread.__init__(name='AsyncLogHandler')
+        threading.Thread.__init__(self, name='AsyncLogHandler')
         self._handler = handler
         self._queue = Queue.Queue()
 
