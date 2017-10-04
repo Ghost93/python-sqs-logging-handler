@@ -4,10 +4,13 @@ import logging.handlers
 import boto3
 from retrying import retry
 
+
 class SQSHandler(logging.Handler):
     """ A Python logging handler which sends messages to Amazon SQS. """
 
-    def __init__(self, queue, aws_key_id=None, secret_key=None, global_extra=None):
+    MAX_RETRY_ATTEMPTS = 3
+
+    def __init__(self, queue, aws_key_id=None, secret_key=None, global_extra=None, region_name='eu-west-1'):
         """
         Sends log messages to SQS so downstream processors can consume
         (e.g. push the log messages to Splunk).
@@ -21,7 +24,7 @@ class SQSHandler(logging.Handler):
         client = boto3.resource('sqs',
                                 aws_access_key_id=aws_key_id,
                                 aws_secret_access_key=secret_key,
-                                region_name='us-west-2')
+                                region_name=region_name)
         self.queue = client.get_queue_by_name(QueueName=queue)
         self._global_extra = global_extra
 
@@ -31,7 +34,7 @@ class SQSHandler(logging.Handler):
         # root logger). We use this flag to guard against nested calling.
         self._entrance_flag = False
 
-    @retry(stop_max_attempt_number=7)
+    @retry(stop_max_attempt_number=MAX_RETRY_ATTEMPTS)
     def emit(self, record):
         """
         Emit log record by sending it over to AWS SQS queue.
