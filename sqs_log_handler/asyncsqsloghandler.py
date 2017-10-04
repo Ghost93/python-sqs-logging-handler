@@ -30,7 +30,7 @@ class AsyncSQSHandler(threading.Thread):
                 except Queue.Empty:
                     break
 
-            self._handler.emit(record)
+            self._handler.emit(records)
 
     def emit(self, record):
         self._queue.put(record)
