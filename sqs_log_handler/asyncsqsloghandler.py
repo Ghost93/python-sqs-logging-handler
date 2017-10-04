@@ -1,5 +1,6 @@
 import Queue
 import threading
+import time
 
 from .sqsloghandler import BatchSQSHandler
 
@@ -40,6 +41,9 @@ class AsyncSQSHandler(threading.Thread):
     def setFormatter(self, fmt):
         self._handler.setFormatter(fmt)
 
+    def format(self, record):
+        self._handler.format(record)
+
     @property
     def level(self):
         return self._handler.level
@@ -49,3 +53,10 @@ class AsyncSQSHandler(threading.Thread):
 
     def handle(self, record):
         self._handler.handle(record)
+
+    def get_name(self):
+        return self._handler.name
+
+    def flush(self):
+        while not self._queue.empty():
+            time.sleep(2)
