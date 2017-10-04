@@ -39,3 +39,10 @@ class AsyncSQSHandler(threading.Thread):
 
     def setFormatter(self, fmt):
         self._handler.setFormatter(fmt)
+
+    @property
+    def level(self):
+        return self._handler.level
+
+    def setLevel(self, level):
+        self._handler.setLevel(level)
