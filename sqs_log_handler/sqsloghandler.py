@@ -1,5 +1,7 @@
+import collections
 import logging
 import logging.handlers
+import uuid
 
 import boto3
 from retrying import retry
@@ -53,3 +55,49 @@ class SQSHandler(logging.Handler):
                 self.queue.send_message(MessageBody=msg)
             finally:
                 self._entrance_flag = False
+
+
+class BatchSQSHandler(SQSHandler):
+    MAX_SQS_BATCH_SIZE = 10
+
+    def __init__(self, queue, aws_key_id=None, secret_key=None, global_extra=None, region_name='eu-west-1'):
+        SQSHandler.__init__(self, queue, aws_key_id, secret_key, global_extra, region_name)
+
+    @retry(stop_max_attempt_number=SQSHandler.MAX_RETRY_ATTEMPTS)
+    def emit(self, record):
+        """
+        Emit log record by sending it over to AWS SQS queue.
+        """
+
+        if not isinstance(record, collections.Iterable):
+            record = [record]
+
+        if self._global_extra is not None:
+            for r in record:
+                r.__dict__.update(self._global_extra)
+
+        formatted = []
+        if not self._entrance_flag:
+            for r in record:
+                formatted.append(self.format(r))
+
+            # When the handler is attached to root logger, the call on SQS
+            # below could generate more logging, and trigger nested emit
+            # calls. Use the flag to prevent stack overflow.
+            self._entrance_flag = True
+            try:
+                for chunk in self.chunks(formatted, self.MAX_SQS_BATCH_SIZE):
+                    entries = []
+                    for formatted_message in chunk:
+                        entries.append({'MessageBody': formatted_message, 'Id': str(uuid.uuid4())})
+
+                    if len(entries) > 0:
+                        self.queue.send_messages(Entries=entries)
+            finally:
+                self._entrance_flag = False
+
+    @staticmethod
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in xrange(0, len(l), n):
+            yield l[i:i + n]
