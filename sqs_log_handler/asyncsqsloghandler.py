@@ -31,3 +31,6 @@ class AsyncSQSHandler(threading.Thread):
 
     def emit(self, record):
         self._queue.put(record)
+
+    def sqs_batch_appender(self):
+        return self._handler
