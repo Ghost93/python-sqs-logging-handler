@@ -1,8 +1,14 @@
-import Queue
+import sys
 import threading
 import time
 
 from .sqsloghandler import BatchSQSHandler
+
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import Queue
+else:
+    import queue as Queue
 
 
 class AsyncSQSHandler(threading.Thread):
